@@ -56,15 +56,22 @@ def is_japanese_holiday():
 
 def get_user_name(user_id):
     try:
+        print(f"ユーザーID {user_id} の情報を取得中...")
         response = slack_client.users_info(user=user_id)
         user_info = response["user"]
+        
         # display_nameがあればそれを使用、なければreal_nameを使用
         display_name = user_info.get("profile", {}).get("display_name")
         real_name = user_info.get("real_name")
-        return display_name if display_name else real_name
+        
+        result_name = display_name if display_name else real_name
+        print(f"取得したユーザー名: {result_name}")
+        return result_name
+        
     except SlackApiError as e:
         print(f"ユーザー情報取得エラー: {e.response['error']}")
-        return f"<@{user_id}>"  # エラー時はユーザーIDのメンション形式で返す
+        # エラー時はユーザーIDをそのまま返す（メンション形式ではなく）
+        return user_id
 
 # --- Slack通知 ---
 
@@ -80,6 +87,8 @@ def post_to_slack(user_id):
 
 def log_to_google_sheets(user_id, user_name):
     today = datetime.utcnow() + timedelta(hours=9)
+    print(f"スプレッドシートに記録: 日付={today.strftime('%Y/%m/%d')}, ユーザー名={user_name}")
+    
     values = [[
         today.strftime("%Y/%m/%d"),
         user_name,  # ユーザー名を記録
@@ -107,7 +116,10 @@ def main():
         return
 
     selected_user = random.choice(MEMBERS)
+    print(f"選択されたユーザーID: {selected_user}")
+    
     user_name = get_user_name(selected_user)
+    print(f"最終的なユーザー名: {user_name}")
     
     post_to_slack(selected_user)
     log_to_google_sheets(selected_user, user_name)
