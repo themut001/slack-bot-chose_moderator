@@ -33,6 +33,10 @@ credentials = service_account.Credentials.from_service_account_file(
 calendar_service = build("calendar", "v3", credentials=credentials)
 sheets_service = build("sheets", "v4", credentials=credentials)
 
+# --- Slack クライアント ---
+
+slack_client = WebClient(token=SLACK_BOT_TOKEN)
+
 # --- 祝日判定 ---
 
 def is_japanese_holiday():
@@ -48,24 +52,37 @@ def is_japanese_holiday():
 
     return len(events.get("items", [])) > 0
 
+# --- ユーザー名取得 ---
+
+def get_user_name(user_id):
+    try:
+        response = slack_client.users_info(user=user_id)
+        user_info = response["user"]
+        # display_nameがあればそれを使用、なければreal_nameを使用
+        display_name = user_info.get("profile", {}).get("display_name")
+        real_name = user_info.get("real_name")
+        return display_name if display_name else real_name
+    except SlackApiError as e:
+        print(f"ユーザー情報取得エラー: {e.response['error']}")
+        return f"<@{user_id}>"  # エラー時はユーザーIDのメンション形式で返す
+
 # --- Slack通知 ---
 
 def post_to_slack(user_id):
-    client = WebClient(token=SLACK_BOT_TOKEN)
     message = f":bell: 明日の朝会（9:00～）の進行役は <@{user_id}> さんです！よろしくお願いします！"
     try:
-        client.chat_postMessage(channel=CHANNEL_ID, text=message)
+        slack_client.chat_postMessage(channel=CHANNEL_ID, text=message)
         print("Slack通知を送信しました。")
     except SlackApiError as e:
         print(f"Slackエラー: {e.response['error']}")
 
 # --- Google Sheets記録 ---
 
-def log_to_google_sheets(user_id):
+def log_to_google_sheets(user_id, user_name):
     today = datetime.utcnow() + timedelta(hours=9)
     values = [[
         today.strftime("%Y/%m/%d"),
-        f"<@{user_id}>",
+        user_name,  # ユーザー名を記録
         today.strftime("%A")
     ]]
 
@@ -90,8 +107,10 @@ def main():
         return
 
     selected_user = random.choice(MEMBERS)
+    user_name = get_user_name(selected_user)
+    
     post_to_slack(selected_user)
-    log_to_google_sheets(selected_user)
+    log_to_google_sheets(selected_user, user_name)
 
 if __name__ == "__main__":
     main()
