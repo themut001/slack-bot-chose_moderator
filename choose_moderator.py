@@ -16,7 +16,7 @@ MEMBERS = os.environ["MEMBER_IDS"].split(",")  # 例: "U01AAA,U02BBB,U03CCC"
 
 # スプレッドシートのID（URLの/d/〜/edit の部分）
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
-SHEET_NAME = "進行役記録"
+SHEET_NAME = "moderators"
 
 # 祝日カレンダーID（日本）
 HOLIDAY_CALENDAR_ID = "ja.japanese#holiday@group.v.calendar.google.com"
