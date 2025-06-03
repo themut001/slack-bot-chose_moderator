@@ -2,7 +2,7 @@ name: Run Moderator Picker
 
 on:
   schedule:
-    - cron: '0 9 * * 1-5'  # JSTの18:00 → UTCの9:00、平日（月～金）
+    - cron: '30 7 * * 1-5'  # JSTの16:30 → UTCの7:30、平日（月～金）
   workflow_dispatch:       # 手動実行も可能
 
 jobs:
