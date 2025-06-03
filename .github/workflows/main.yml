@@ -32,4 +32,5 @@ jobs:
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
           MEMBER_IDS: ${{ secrets.MEMBER_IDS }}
           GOOGLE_APPLICATION_CREDENTIALS: google_calendar_credentials.json
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
         run: python choose_moderator.py
